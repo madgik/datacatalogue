@@ -1,0 +1,12 @@
+services:
+  datacatalogue_db:
+    image: postgres:15
+    volumes:
+      - ./.stored_data/datacataloguedb:/var/lib/postgresql/data
+    hostname: datacatalogue_db
+    environment:
+      POSTGRES_PASSWORD: test
+    command: -p 5432
+    ports:
+      - '5432:5432'
+    restart: unless-stopped

@@ -1,0 +1,54 @@
+# Configuration for development purposes
+### EMBEDDED SERVER CONFIGURATION ###
+server:
+  servlet:
+    context-path: "/services"
+  port: 8090
+  forward-headers-strategy: native
+
+### AUTHENTICATION ###
+authentication:
+  enabled: 0
+  domain_expert: "DC_DOMAIN_EXPERT"
+
+### LOG LEVELS ###
+logging:
+  level:
+    root: "INFO"
+    eu:
+      ebrainsv2: "DEBUG"
+
+
+### DATABASE CONFIGURATION ###
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: test
+    driver-class-name: org.postgresql.Driver
+  data:
+    jpa:
+      repositories:
+        bootstrap-mode: default
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  jackson:
+    default-property-inclusion: non_null
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            authorization-grant-type: authorization_code
+            client-id: datacatalogue
+            client-secret: s66onAvpe6Bhhp476PnDM5XitZaMjfKG
+            provider: keycloak
+            scope: openid
+        provider:
+          keycloak:
+            user-name-attribute: preferred_username
+            issuer-uri: https://iam.ebrains.eu/auth/realms/MIP
