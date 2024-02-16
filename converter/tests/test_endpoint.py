@@ -178,3 +178,24 @@ class TestExcelJsonConverterAPI(unittest.TestCase):
             df["methodology"].tolist(),
             ["example methodology", "group methodology", "nested methodology"],
         )
+
+    def test_excel_to_json_conversion_no_excel(self):
+        response = self.client.post(
+            "/excel-to-json", content_type="multipart/form-data", data={}
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_json_to_excel_conversion_no_json(self):
+        response = self.client.post(
+            "/json-to-excel", json="", content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_excel_to_json_no_selected_file(self):
+        # Simulate sending a file with an empty filename
+        data = {
+            'file': (BytesIO(), '')  # Empty filename
+        }
+        response = self.client.post('/excel-to-json', content_type='multipart/form-data', data=data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json, {"error": "No selected file"})

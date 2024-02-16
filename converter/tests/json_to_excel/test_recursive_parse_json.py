@@ -123,7 +123,3 @@ class TestRecursiveParseJsonFunction(unittest.TestCase):
             ["", "Variable *1", "V@1", "", "", "", "", "", "", "Group &1/V@1", ""]
         ]
         self.assertEqual(recursive_parse_json(json_data), expected)
-
-
-if __name__ == "__main__":
-    unittest.main()

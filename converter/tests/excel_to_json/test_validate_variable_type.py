@@ -8,12 +8,7 @@ class TestValidateVariableType(unittest.TestCase):
     def test_with_valid_type(self):
         for valid_type in TYPE_2_SQL.keys():
             row = {"type": valid_type}
-            try:
-                validate_variable_type(row)  # Should not raise an error
-            except ValueError:
-                self.fail(
-                    f"validate_variable_type raised ValueError unexpectedly for valid type '{valid_type}'."
-                )
+            validate_variable_type(row)  # Should not raise an error
 
     def test_with_invalid_type(self):
         row = {"type": "unsupported_type"}

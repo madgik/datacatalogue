@@ -67,7 +67,3 @@ class TestParseVariablesFunction(unittest.TestCase):
         )
         result = parse_variables(variable, concept_path)
         self.assertIn(expected_concept_path, result)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -32,6 +32,8 @@ def excel_to_json():
 
 @app.route("/json-to-excel", methods=["POST"])
 def json_to_excel():
+    if not request.json:
+        return "", 400
     json_data = request.json
     df = convert_json_to_excel(json_data)
     # Create a BytesIO buffer to save the Excel file
@@ -46,7 +48,3 @@ def json_to_excel():
         download_name="output.xlsx",  # Use download_name for newer Flask versions if attachment_filename causes issues
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
-
-
-if __name__ == "__main__":
-    app.run(debug=True)

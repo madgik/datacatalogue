@@ -70,7 +70,3 @@ class TestExtractValuesFunction(unittest.TestCase):
         expected = '{"C1\\"special\\"","Label 1\\"special\\""},{"C2\'special","Label 2\'special"}'
         result = extract_values(variable)
         self.assertEqual(result, expected)
-
-
-if __name__ == "__main__":
-    unittest.main()

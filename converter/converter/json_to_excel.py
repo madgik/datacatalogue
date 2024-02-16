@@ -113,11 +113,6 @@ def recursive_parse_json(json_data, concept_path=[]):
 
         if label:  # Ensure concept path is not permanently altered
             concept_path.pop()
-
-    elif isinstance(json_data, list):
-        # Process each item in the list
-        for item in json_data:
-            data.extend(recursive_parse_json(item, concept_path.copy()))
     return data
 
 

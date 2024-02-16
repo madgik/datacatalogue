@@ -76,3 +76,13 @@ class TestProcessValuesBasedOnType(unittest.TestCase):
             "Invalid range format for variable VInvalidReal: 0.1 - not-a-real",
             str(context.exception),
         )
+
+    def test_invalid_type_in_values_range_raises_error(self):
+        row = {"type": "real", "values": "a-b", "code": "VInvalidReal"}
+        variable = {}
+        with self.assertRaises(ValueError) as context:
+            process_values_based_on_type(row, variable)
+        self.assertIn(
+            "Range values for variable VInvalidReal must be valid real numbers",
+            str(context.exception),
+        )

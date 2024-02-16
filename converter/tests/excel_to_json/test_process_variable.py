@@ -19,6 +19,8 @@ class TestProcessVariable(unittest.TestCase):
                 {"code": "code1", "label": "label1"},
                 {"code": "code2", "label": "label2"},
             ],
+            "isCategorical": True,
+            "sql_type": "text",
         }
         result_variable = process_variable(row)
         self.assertEqual(result_variable, expected_variable)
@@ -36,6 +38,8 @@ class TestProcessVariable(unittest.TestCase):
             "type": "integer",
             "minValue": 1,
             "maxValue": 100,
+            "isCategorical": False,
+            "sql_type": "int",
         }
         result_variable = process_variable(row)
         self.assertEqual(result_variable, expected_variable)
@@ -64,6 +68,8 @@ class TestProcessVariable(unittest.TestCase):
             "minValue": 0.01,
             "maxValue": 99.99,
             "description": "A real number variable",
+            "isCategorical": False,
+            "sql_type": "real",
         }
         result_variable = process_variable(row)
         self.assertEqual(result_variable, expected_variable)
@@ -80,6 +86,8 @@ class TestProcessVariable(unittest.TestCase):
             "code": "TextVar",
             "type": "text",
             "description": "A text variable",
+            "isCategorical": False,
+            "sql_type": "text",
         }
         result_variable = process_variable(row)
         self.assertEqual(result_variable, expected_variable)
@@ -100,6 +108,8 @@ class TestProcessVariable(unittest.TestCase):
             "type": "integer",
             "minValue": 1,
             "maxValue": 100,
+            "isCategorical": False,
+            "sql_type": "int",
         }
         result_variable = process_variable(row)
         self.assertEqual(result_variable, expected_variable)
@@ -119,6 +129,8 @@ class TestProcessVariable(unittest.TestCase):
             "type": "real",
             "minValue": 10.5,
             "maxValue": 20.5,
+            "isCategorical": False,
+            "sql_type": "real",
         }
         result_variable = process_variable(row)
         self.assertEqual(result_variable, expected_variable)
