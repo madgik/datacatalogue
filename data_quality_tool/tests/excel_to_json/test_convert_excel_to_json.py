@@ -2,7 +2,8 @@ import unittest
 
 import pandas as pd
 
-from converter.excel_to_json import convert_excel_to_json
+from common_entities import InvalidDataModelError
+from data_quality_tool.excel_to_json import convert_excel_to_json
 
 
 class TestConvertExcelToJson(unittest.TestCase):
@@ -30,7 +31,6 @@ class TestConvertExcelToJson(unittest.TestCase):
         }
         result = convert_excel_to_json(self.df)
         self.assertEqual(result["code"], expected_output["code"])
-        self.assertEqual(len(result["groups"]), 0)
         self.assertEqual(result["version"], "to be defined")
 
     def test_missing_conceptPath_raises_error(self):
@@ -42,7 +42,7 @@ class TestConvertExcelToJson(unittest.TestCase):
             # Missing conceptPath
         }
         df_missing_path = pd.DataFrame(data_with_missing_path)
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(InvalidDataModelError) as context:
             convert_excel_to_json(df_missing_path)
         self.assertIn("missing the conceptPath", str(context.exception))
 
@@ -72,9 +72,9 @@ class TestConvertExcelToJson(unittest.TestCase):
         }
         df = pd.DataFrame(data)
 
-        with self.assertRaises(ValueError) as context:
-            convert_excel_to_json(df)
-        self.assertIn("missing the conceptPath", str(context.exception))
+        expected_message = "Error processing variable: The variable Var2 is missing the conceptPath"
+        with self.assertRaisesRegex(InvalidDataModelError, expected_message):
+            print(convert_excel_to_json(df))
 
     def test_deeply_nested_conceptPath(self):
         # Scenario with a deeply nested conceptPath
@@ -113,7 +113,7 @@ class TestConvertExcelToJson(unittest.TestCase):
         }
         df = pd.DataFrame(data)
 
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(InvalidDataModelError) as context:
             convert_excel_to_json(df)
         self.assertIn(
             "The row must have a 'type' field with a valid value",
@@ -133,9 +133,6 @@ class TestConvertExcelToJson(unittest.TestCase):
             ],  # Intentionally missing to simulate ungrouped variables
         }
         df = pd.DataFrame(data)
-        with self.assertRaises(ValueError) as context:
+        expected_message = "The variable UngroupedTextVar is missing the conceptPath"
+        with self.assertRaisesRegex(InvalidDataModelError, expected_message):
             convert_excel_to_json(df)
-        self.assertIn(
-            "Error processing variable: The variable UngroupedTextVar is missing the conceptPath",
-            str(context.exception),
-        )

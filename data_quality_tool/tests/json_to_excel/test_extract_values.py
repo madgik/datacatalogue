@@ -1,6 +1,7 @@
 import unittest
 
-from converter.json_to_excel import extract_values
+from common_entities import InvalidDataModelError
+from data_quality_tool.json_to_excel import extract_values
 
 
 class TestExtractValuesFunction(unittest.TestCase):
@@ -52,12 +53,12 @@ class TestExtractValuesFunction(unittest.TestCase):
 
     def test_enumerations_missing_code_raises_error(self):
         variable = {"enumerations": [{"label": "Only Label"}]}  # Missing 'code'
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidDataModelError):
             extract_values(variable)
 
     def test_enumerations_missing_label_raises_error(self):
         variable = {"enumerations": [{"code": "OnlyCode"}]}  # Missing 'label'
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidDataModelError):
             extract_values(variable)
 
     def test_enumerations_with_special_characters_escaping(self):

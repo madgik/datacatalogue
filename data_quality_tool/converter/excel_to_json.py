@@ -1,9 +1,10 @@
 import pandas as pd
 import json
 
-# Mapping of Excel columns to JSON keys, adjust as necessary,
-# Did not contain the values because it is not in a 1 to 1 scenario.
-EXCEL_JSON_FIELDS_MAP = {
+from common_entities import EXCEL_TYPE_2_SQL_TYPE_ISCATEGORICAL_MAP, InvalidDataModelError
+
+
+EXCEL_JSON_FIELDS_MAP_WITHOUT_VALUES = {
     "name": "label",
     "code": "code",
     "type": "type",
@@ -15,33 +16,24 @@ EXCEL_JSON_FIELDS_MAP = {
     "methodology": "methodology",
 }
 
-TYPE_2_SQL = {
-    "nominal": ("text", True),
-    "real": ("real", False),
-    "integer": ("int", False),
-    "text": ("text", False),
-}
 
-
-def process_enumerations(enumerations_str):
+def process_enumerations(values):
     """
     Parses a custom-formatted string into a list of dictionaries with 'code' and 'label'.
     Expected format: '{"code1", "label1"}, {"code2", "label2"}'.
     """
+    # Transform the string to a JSON-compatible format
     try:
-        enumerations_str = (
-            "[" + enumerations_str.replace('","', '":"').replace('", "', '": "') + "]"
-        )
-        parsed = json.loads(enumerations_str)
-    except json.decoder.JSONDecodeError:
-        raise ValueError(
-            "Could not parse enumerations: "
-            + enumerations_str
-            + '"proper format is {"code1", "label1"}, {"code2", "label2"}"'
+        # Transforming {"key","value"} into [{"key": "value"}]
+        transformed_values = "[" + values.replace('","', '":"').replace('", "', '": "') + "]"
+        enumerations = json.loads(transformed_values)
+    except json.JSONDecodeError:
+        raise InvalidDataModelError(
+            'Nominal values format error: \'{"code", "label"}, {"code", "label"}\' expected but got ' + values + "."
         )
     return [
         {"code": list(item.keys())[0], "label": list(item.values())[0]}
-        for item in parsed
+        for item in enumerations
     ]
 
 
@@ -78,16 +70,18 @@ def process_values_based_on_type(row, variable):
     values = row.get("values")
     variable_type = row.get("type")
 
-    if variable_type in ["real", "integer"]:
-        if not values:
-            return
-
-        # Split the range and strip whitespace
+    if variable_type in ["real", "integer"] and values:
         try:
-            print(values)
-            min_value, max_value = map(str.strip, values.split("-"))
-        except ValueError:
-            raise ValueError(f"Invalid range format for variable {code}: {values}")
+            # Attempt to split the string into exactly two parts and unpack
+            min_value, max_value = values.split('-')
+
+            # Try to convert both parts into floats
+            float(min_value)
+            float(max_value)
+        except Exception:
+            raise InvalidDataModelError(
+                f"Values must match format '<float or integer>-<float or integer>' but got '{values}'."
+            )
 
         # Convert min and max values to the appropriate type
         try:
@@ -100,23 +94,23 @@ def process_values_based_on_type(row, variable):
                     max_value
                 )
         except ValueError:
-            raise ValueError(
+            raise InvalidDataModelError(
                 f"Range values for variable {code} must be valid {variable_type} numbers"
             )
 
     elif variable_type == "nominal":
         if not values:
-            raise ValueError(
+            raise InvalidDataModelError(
                 f"The 'values' should not be empty for variable {code} when type is 'nominal'"
             )
         variable["enumerations"] = process_enumerations(values)
 
 
 def validate_variable_type(row):
-    valid_types = set(TYPE_2_SQL.keys())
+    valid_types = set(EXCEL_TYPE_2_SQL_TYPE_ISCATEGORICAL_MAP.keys())
     if "type" not in row or row["type"] not in valid_types:
         valid_types_str = ", ".join(valid_types)
-        raise ValueError(
+        raise InvalidDataModelError(
             f"The row must have a 'type' field with a valid value."
             f" Valid values are: {valid_types_str}, got '{row.get('type')}' instead."
         )
@@ -130,19 +124,31 @@ def process_variable(row):
     # Validate variable type first
     validate_variable_type(row)
 
-    # Initialize the variable dictionary with mappings from EXCEL_JSON_FIELDS_MAP
+    # Initialize the variable dictionary with mappings from EXCEL_JSON_FIELDS_MAP_WITHOUT_VALUES
     variable = {
         json_key: row[excel_col]
-        for excel_col, json_key in EXCEL_JSON_FIELDS_MAP.items()
+        for excel_col, json_key in EXCEL_JSON_FIELDS_MAP_WITHOUT_VALUES.items()
         if excel_col in row and pd.notnull(row[excel_col])
     }
 
     # Process 'values' based on variable type, which might modify 'variable' in-place
     process_values_based_on_type(row, variable)
 
-    variable["sql_type"], variable["isCategorical"] = TYPE_2_SQL[variable["type"]]
+    variable["sql_type"], variable["isCategorical"] = EXCEL_TYPE_2_SQL_TYPE_ISCATEGORICAL_MAP[variable["type"]]
 
     return variable
+
+
+def clean_empty_fields(data):
+    if isinstance(data, dict):  # If the item is a dictionary
+        keys_to_delete = [key for key, value in data.items() if (key in ['variables', 'groups', 'enumerations'] and not value) or value == ""]
+        for key in keys_to_delete:
+            del data[key]  # Delete the key if its value is an empty list or an empty string
+        for key in data:  # Recursively clean remaining dictionary items
+            clean_empty_fields(data[key])
+    elif isinstance(data, list):  # If the item is a list, apply the function to each element
+        for item in data:
+            clean_empty_fields(item)
 
 
 def convert_excel_to_json(df):
@@ -150,26 +156,28 @@ def convert_excel_to_json(df):
     Converts a DataFrame from Excel into a JSON structure, handling enumerations specifically,
     and adds 'isCategorical' and 'sql_type' based on the 'type'.
     """
+    df = df.astype(str).replace("nan", None)
     root = {"variables": [], "groups": [], "code": "root"}
 
     for _, row in df.iterrows():
         try:
 
             variable = process_variable(row.to_dict())
-            if "conceptPath" in variable and variable["conceptPath"]:
+            if "conceptPath" in variable and variable["conceptPath"] and variable["conceptPath"] != "None":
                 path = variable["conceptPath"].split("/")
                 del variable["conceptPath"]
                 insert_variable_into_structure(root, variable, path)
             else:
-                raise ValueError(
+                raise InvalidDataModelError(
                     f"The variable {variable['code']} is missing the conceptPath"
                 )
-        except ValueError as e:
-            raise ValueError(f"Error processing variable: {e}")
+        except InvalidDataModelError as e:
+            raise InvalidDataModelError(f"Error processing variable: {e}")
 
     if root["groups"]:
         data_model = root["groups"][0]
         data_model["version"] = "to be defined"
+        clean_empty_fields(data_model)
         return data_model
     else:
         return {"code": "No groups found", "groups": [], "variables": root["variables"]}

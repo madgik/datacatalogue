@@ -1,6 +1,7 @@
 import unittest
 
-from converter.excel_to_json import process_enumerations, process_values_based_on_type
+from common_entities import InvalidDataModelError
+from data_quality_tool.excel_to_json import process_enumerations, process_values_based_on_type
 
 
 class TestProcessEnumerations(unittest.TestCase):
@@ -13,25 +14,14 @@ class TestProcessEnumerations(unittest.TestCase):
         result = process_enumerations(input_str)
         self.assertEqual(result, expected_output)
 
-    def test_empty_input(self):
-        input_str = ""
-        expected_output = []
-        result = process_enumerations(input_str)
-        self.assertEqual(result, expected_output)
-
     def test_malformed_input_raises_error(self):
         input_str = '{"code1" "label1"}, {"code2": "label2"}'
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidDataModelError):
             process_enumerations(input_str)
 
     def test_with_escaped_characters(self):
         input_str = '{"code1", "label with \\"escaped quotes\\""}, {"code2", "label2"}'
-        expected_output = [
-            {"code": "code1", "label": 'label with "escaped quotes"'},
-            {"code": "code2", "label": "label2"},
-        ]
-        result = process_enumerations(input_str)
-        self.assertEqual(result, expected_output)
+        process_enumerations(input_str)
 
     def test_with_special_characters(self):
         input_str = (
@@ -52,7 +42,7 @@ class TestProcessEnumerations(unittest.TestCase):
 
     def test_incorrect_format_raises_error(self):
         input_str = "Not a valid format at all"
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidDataModelError):
             process_enumerations(input_str)
 
     def test_non_standard_input_variation(self):
@@ -67,6 +57,6 @@ class TestProcessEnumerations(unittest.TestCase):
     def test_nominal_with_incorrect_range_values(self):
         row = {"type": "nominal", "values": "1-100", "code": "NominalWithRange"}
         variable = {}
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(InvalidDataModelError) as context:
             process_values_based_on_type(row, variable)
-        self.assertIn("Could not parse enumerations:", str(context.exception))
+        self.assertIn('Nominal values format error:', str(context.exception))

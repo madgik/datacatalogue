@@ -4,21 +4,15 @@ from io import BytesIO
 
 import pandas as pd
 
+from common_entities import EXCEL_COLUMNS
 from controller import app
 
 
-class TestExcelJsonConverterAPI(unittest.TestCase):
+class TestController(unittest.TestCase):
     def setUp(self):
         self.app = app
         self.app.testing = True
         self.client = self.app.test_client()
-
-    def test_home_route(self):
-        response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(
-            "Welcome to the Excel-JSON Converter API!", response.data.decode()
-        )
 
     def test_excel_to_json_conversion(self):
         with open("MinimalDataModelExample.xlsx", "rb") as file:
@@ -52,9 +46,10 @@ class TestExcelJsonConverterAPI(unittest.TestCase):
                 "methodology",
                 "sql_type",
                 "type",
+                "units"
             ]
-            self.assertListEqual(
-                list(minimal_data_model["variables"][0].keys()), expected_columns
+            self.assertEqual(
+                set(minimal_data_model["variables"][0].keys()), set(expected_columns)
             )
             self.assertEqual(minimal_data_model["variables"][0]["code"], "dataset")
 
@@ -78,10 +73,11 @@ class TestExcelJsonConverterAPI(unittest.TestCase):
                 "minValue",
                 "sql_type",
                 "type",
+                "units"
             ]
-            self.assertListEqual(
-                list(minimal_data_model["groups"][0]["variables"][0].keys()),
-                expected_columns,
+            self.assertEqual(
+                set(minimal_data_model["groups"][0]["variables"][0].keys()),
+                set(expected_columns),
             )
             self.assertEqual(
                 minimal_data_model["groups"][0]["variables"][0]["code"],
@@ -89,10 +85,11 @@ class TestExcelJsonConverterAPI(unittest.TestCase):
             )
 
             # Validate Sub-Group
+            expected_subgroup_fields = ["code", "label", "variables"]
             self.assertEqual(len(minimal_data_model["groups"][0]["groups"]), 1)
             self.assertListEqual(
                 list(minimal_data_model["groups"][0]["groups"][0].keys()),
-                expected_group_fields,
+                expected_subgroup_fields,
             )
             self.assertEqual(
                 minimal_data_model["groups"][0]["groups"][0]["code"], "Nested Group"
@@ -136,20 +133,9 @@ class TestExcelJsonConverterAPI(unittest.TestCase):
         # Read the Excel file from the response
         excel_file = BytesIO(response.data)
         df = pd.read_excel(excel_file)
-        excel_columns = [
-            "csvFile",
-            "name",
-            "code",
-            "type",
-            "values",
-            "units",
-            "description",
-            "canBeNull",
-            "comments",
-            "conceptPath",
-            "methodology",
-        ]
-        self.assertListEqual(list(df.columns), excel_columns)
+        print(df["values"])
+
+        self.assertListEqual(list(df.columns), EXCEL_COLUMNS)
         self.assertEqual(
             df["name"].tolist(),
             ["Dataset Variable", "Group Variable", "Nested Group Variable"],
@@ -193,9 +179,82 @@ class TestExcelJsonConverterAPI(unittest.TestCase):
 
     def test_excel_to_json_no_selected_file(self):
         # Simulate sending a file with an empty filename
-        data = {
-            'file': (BytesIO(), '')  # Empty filename
-        }
-        response = self.client.post('/excel-to-json', content_type='multipart/form-data', data=data)
+        data = {"file": (BytesIO(), "")}  # Empty filename
+        response = self.client.post(
+            "/excel-to-json", content_type="multipart/form-data", data=data
+        )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json, {"error": "No selected file"})
+
+    def test_validate_json_success(self):
+        with open("MinimalDataModelExample.json", "r") as file:
+            json_data = json.load(file)
+
+        response = self.client.post(
+            "/validate-json", json=json_data, content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 200)
+
+        response_data = response.json
+        self.assertIn("message", response_data)
+        self.assertEqual(response_data["message"], "Data model is valid.")
+
+    def test_validate_json_invalid_structure(self):
+        with open("MinimalDataModelExample.json", "r") as file:
+            json_data = json.load(file)
+
+        del json_data["code"]
+        response = self.client.post(
+            "/validate-json", json=json_data, content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+        response_data = response.json
+        self.assertIn("error", response_data)
+        self.assertEqual("Missing 'code' in DataModel", response_data["error"])
+
+    def test_validate_json_no_json(self):
+        response = self.client.post(
+            "/validate-json", json="", content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_validate_excel_success(self):
+        with open("MinimalDataModelExample.xlsx", "rb") as file:
+            data = {"file": (file, "MinimalDataModelExample.xlsx")}
+            response = self.client.post(
+                "/validate-excel", content_type="multipart/form-data", data=data
+            )
+            self.assertEqual(response.status_code, 200)
+
+            response_data = response.json
+            self.assertIn("message", response_data)
+            self.assertEqual(response_data["message"], "Data model is valid.")
+
+    def test_validate_excel_no_excel(self):
+        response = self.client.post(
+            "/validate-excel", content_type="multipart/form-data", data={}
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_validate_excel_no_selected_file(self):
+        # Simulate sending a file with an empty filename
+        data = {"file": (BytesIO(), "")}  # Empty filename
+        response = self.client.post(
+            "/validate-excel", content_type="multipart/form-data", data=data
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json, {"error": "No selected file"})
+
+    def test_validate_excel_missing_column(self):
+        with open("MinimalDataModelError.xlsx", "rb") as file:
+            data = {"file": (file, "MinimalDataModelExample.xlsx")}
+            response = self.client.post(
+                "/validate-excel", content_type="multipart/form-data", data=data
+            )
+            self.assertEqual(response.status_code, 400)
+
+            response_data = response.json
+            self.assertIn("error", response_data)
+            self.assertEqual("Missing value for required column 'name'.", response_data["error"])

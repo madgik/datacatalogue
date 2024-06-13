@@ -1,6 +1,7 @@
 import unittest
 
-from converter.excel_to_json import process_variable
+from common_entities import InvalidDataModelError
+from data_quality_tool.excel_to_json import process_variable
 
 
 class TestProcessVariable(unittest.TestCase):
@@ -50,7 +51,7 @@ class TestProcessVariable(unittest.TestCase):
             "name": "Invalid Type Variable",
             "code": "InvalidTypeVar",
         }
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidDataModelError):
             process_variable(row)
 
     def test_process_real_variable_with_range(self):
@@ -94,7 +95,7 @@ class TestProcessVariable(unittest.TestCase):
 
     def test_variable_with_missing_values_field(self):
         row = {"type": "nominal", "name": "Nominal Variable", "code": "NominalVar"}
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(InvalidDataModelError) as context:
             process_variable(row)
         self.assertIn(
             "The 'values' should not be empty for variable NominalVar when type is 'nominal'",
@@ -143,6 +144,6 @@ class TestProcessVariable(unittest.TestCase):
             "name": "Incorrect Nominal Variable",
             "code": "IncorrNomVar",
         }
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(InvalidDataModelError) as context:
             process_variable(row)
-        self.assertIn("Could not parse enumerations:", str(context.exception))
+        self.assertEqual('''Nominal values format error: '{"code", "label"}, {"code", "label"}' expected but got 1-100.''', str(context.exception))

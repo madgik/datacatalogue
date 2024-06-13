@@ -1,6 +1,7 @@
 import unittest
 
-from converter.excel_to_json import process_values_based_on_type
+from common_entities import InvalidDataModelError
+from data_quality_tool.excel_to_json import process_values_based_on_type
 
 
 class TestProcessValuesBasedOnType(unittest.TestCase):
@@ -11,6 +12,16 @@ class TestProcessValuesBasedOnType(unittest.TestCase):
         process_values_based_on_type(row, variable)
         self.assertEqual(variable["minValue"], 1)
         self.assertEqual(variable["maxValue"], 100)
+
+    def test_process_min_max_invalid_type(self):
+        row = {"type": "integer", "values": "1.1-100.1"}
+        variable = {}
+        with self.assertRaises(InvalidDataModelError) as context:
+            process_values_based_on_type(row, variable)
+        self.assertIn(
+            "Range values for variable None must be valid integer numbers",
+            str(context.exception),
+        )
 
     def test_process_nominal_enumerations(self):
         row = {"type": "nominal", "values": '{"code1", "label1"}, {"code2", "label2"}'}
@@ -25,7 +36,7 @@ class TestProcessValuesBasedOnType(unittest.TestCase):
     def test_nominal_without_values_raises_error(self):
         row = {"type": "nominal", "code": "code1"}
         variable = {"code": "V1"}
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(InvalidDataModelError) as context:
             process_values_based_on_type(row, variable)
         self.assertIn(
             "The 'values' should not be empty for variable code1 when type is 'nominal'",
@@ -40,7 +51,7 @@ class TestProcessValuesBasedOnType(unittest.TestCase):
         self.assertNotIn("maxValue", variable)
 
     def test_integer_range_with_correct_conversion(self):
-        row = {"type": "integer", "values": "1 - 100"}
+        row = {"type": "integer", "values": "1-100"}
         variable = {}
         process_values_based_on_type(row, variable)
         self.assertEqual(variable["minValue"], 1)
@@ -49,7 +60,7 @@ class TestProcessValuesBasedOnType(unittest.TestCase):
         self.assertIsInstance(variable["maxValue"], int)
 
     def test_real_range_with_correct_conversion(self):
-        row = {"type": "real", "values": "0.1 - 99.9"}
+        row = {"type": "real", "values": "0.1-99.9"}
         variable = {}
         process_values_based_on_type(row, variable)
         self.assertEqual(variable["minValue"], 0.1)
@@ -60,29 +71,29 @@ class TestProcessValuesBasedOnType(unittest.TestCase):
     def test_invalid_integer_range_raises_error(self):
         row = {"type": "integer", "values": "not-an-int - 100", "code": "VInvalidInt"}
         variable = {}
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(InvalidDataModelError) as context:
             process_values_based_on_type(row, variable)
         self.assertIn(
-            "Invalid range format for variable VInvalidInt: not-an-int - 100",
+            "Values must match format '<float or integer>-<float or integer>",
             str(context.exception),
         )
 
     def test_invalid_real_range_raises_error(self):
         row = {"type": "real", "values": "0.1 - not-a-real", "code": "VInvalidReal"}
         variable = {}
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(InvalidDataModelError) as context:
             process_values_based_on_type(row, variable)
         self.assertIn(
-            "Invalid range format for variable VInvalidReal: 0.1 - not-a-real",
+            "Values must match format '<float or integer>-<float or integer>",
             str(context.exception),
         )
 
     def test_invalid_type_in_values_range_raises_error(self):
         row = {"type": "real", "values": "a-b", "code": "VInvalidReal"}
         variable = {}
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(InvalidDataModelError) as context:
             process_values_based_on_type(row, variable)
         self.assertIn(
-            "Range values for variable VInvalidReal must be valid real numbers",
+            "Values must match format '<float or integer>-<float or integer>",
             str(context.exception),
         )

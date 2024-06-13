@@ -1,6 +1,6 @@
 import unittest
 
-from converter.json_to_excel import recursive_parse_json
+from data_quality_tool.json_to_excel import recursive_parse_json
 
 
 class TestRecursiveParseJsonFunction(unittest.TestCase):

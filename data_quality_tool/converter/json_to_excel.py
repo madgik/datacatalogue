@@ -1,49 +1,7 @@
-#  Copyright 2023 The MIP team, University Hospital of Lausanne (CHUV), Switzerland & Contributors
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-
 """Standalone script for converting a CDEs Metadata Schema of the Medical Informatics Platform (MIP) from JSON format back to EXCEL format."""
-
-import sys
-import json
-import argparse
 import pandas as pd
 
-
-JSON_EXCEL_FIELDS_MAP = {
-    "label": "name",
-    "code": "code",
-    "type": "type",
-    "enumerations": "values",
-    "minValue": "values",
-    "maxValue": "values",
-    "units": "units",
-    "description": "description",
-}
-
-EXCEL_JSON_FIELDS_MAP = {
-    "csvFile": "csvFile",
-    "name": "label",
-    "code": "code",
-    "type": "type",
-    "values": "enumerations",
-    "units": "units",
-    "description": "description",
-    "canBeNull": "canBeNull",
-    "comments": "comments",
-    "conceptPath": "conceptPath",
-    "methodology": "methodology",
-}
+from common_entities import EXCEL_JSON_FIELDS_MAP, EXCEL_COLUMNS, InvalidDataModelError
 
 
 def extract_values(variable):
@@ -51,7 +9,7 @@ def extract_values(variable):
     if enumerations:
         for elem in enumerations:
             if "code" not in elem or "label" not in elem:
-                raise ValueError(
+                raise InvalidDataModelError(
                     "Each enumeration must have both 'code' and 'label' fields."
                 )
 
@@ -104,11 +62,11 @@ def recursive_parse_json(json_data, concept_path=[]):
             concept_path.append(label)
 
         # Process variables at the current level
-        for variable in json_data.get("variables", []):
+        for variable in json_data.get("variables") or []:
             data.append(parse_variables(variable, concept_path))
 
         # Recursively process each group in the current level
-        for group in json_data.get("groups", []):
+        for group in json_data.get("groups") or []:
             data.extend(recursive_parse_json(group, concept_path.copy()))
 
         if label:  # Ensure concept path is not permanently altered
@@ -119,11 +77,10 @@ def recursive_parse_json(json_data, concept_path=[]):
 def convert_json_to_excel(cdes_data):
 
     # Parse the json data to a list of dict items with
-    # "csvFile", "name", "code", "type", "values", "units",
+    # "csvFile", "name", "code", "type", "values", "unit",
     # "description", "canBeNull", "comments", "conceptPath",
     # and "methodology keys that can be used to create a pandas
     # dataframe
     result = recursive_parse_json(cdes_data)
-
     # Create a pandas dataframe from the list of dict items
-    return pd.DataFrame(result, columns=EXCEL_JSON_FIELDS_MAP.keys())
+    return pd.DataFrame(result, columns=EXCEL_COLUMNS)
