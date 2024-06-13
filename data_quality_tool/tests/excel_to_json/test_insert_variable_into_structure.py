@@ -1,6 +1,6 @@
 import unittest
 
-from data_quality_tool.excel_to_json import insert_variable_into_structure
+from data_quality_tool.converter.excel_to_json import insert_variable_into_structure
 
 
 class TestInsertVariableIntoStructure(unittest.TestCase):

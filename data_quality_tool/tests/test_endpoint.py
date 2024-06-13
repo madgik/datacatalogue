@@ -4,7 +4,7 @@ from io import BytesIO
 
 import pandas as pd
 
-from common_entities import EXCEL_COLUMNS
+from data_quality_tool.common_entities import EXCEL_COLUMNS
 from controller import app
 
 

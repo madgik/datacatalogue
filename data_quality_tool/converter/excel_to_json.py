@@ -1,7 +1,7 @@
 import pandas as pd
 import json
 
-from common_entities import EXCEL_TYPE_2_SQL_TYPE_ISCATEGORICAL_MAP, InvalidDataModelError
+from data_quality_tool.common_entities import EXCEL_TYPE_2_SQL_TYPE_ISCATEGORICAL_MAP, InvalidDataModelError
 
 
 EXCEL_JSON_FIELDS_MAP_WITHOUT_VALUES = {

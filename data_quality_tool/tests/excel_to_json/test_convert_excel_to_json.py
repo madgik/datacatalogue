@@ -2,8 +2,8 @@ import unittest
 
 import pandas as pd
 
-from common_entities import InvalidDataModelError
-from data_quality_tool.excel_to_json import convert_excel_to_json
+from data_quality_tool.common_entities import InvalidDataModelError
+from data_quality_tool.converter.excel_to_json import convert_excel_to_json
 
 
 class TestConvertExcelToJson(unittest.TestCase):

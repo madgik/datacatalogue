@@ -1,6 +1,6 @@
 import unittest
 
-from validator.json_validator import (
+from data_quality_tool.validator.json_validator import (
     validate_longitudinal_elements,
     InvalidDataModelError,
 )

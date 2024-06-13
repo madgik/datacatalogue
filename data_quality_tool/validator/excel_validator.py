@@ -2,8 +2,8 @@ import json
 import re
 import pandas as pd
 
-from common_entities import InvalidDataModelError, REQUIRED_COLUMNS, EXCEL_COLUMNS, \
-    EXCEL_TYPE_2_SQL_TYPE_ISCATEGORICAL_MAP, ENUMERATION_PATTERN, MIN_MAX_PATTERN
+from data_quality_tool.common_entities import InvalidDataModelError, REQUIRED_COLUMNS, EXCEL_COLUMNS, \
+    EXCEL_TYPE_2_SQL_TYPE_ISCATEGORICAL_MAP
 
 # Regex for validation
 CONCEPT_PATH_PATTERN = r"^[^/]+(/[^/]+)*$"

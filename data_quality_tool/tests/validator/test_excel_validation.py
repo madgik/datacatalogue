@@ -2,8 +2,8 @@ import unittest
 
 import pandas as pd
 
-from common_entities import REQUIRED_COLUMNS, EXCEL_COLUMNS
-from validator.excel_validator import (
+from data_quality_tool.common_entities import REQUIRED_COLUMNS, EXCEL_COLUMNS
+from data_quality_tool.validator.excel_validator import (
     validate_enumerations,
     InvalidDataModelError,
     validate_min_max,

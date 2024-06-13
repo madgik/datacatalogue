@@ -1,7 +1,7 @@
 import unittest
 
-from common_entities import InvalidDataModelError
-from data_quality_tool.excel_to_json import EXCEL_TYPE_2_SQL_TYPE_ISCATEGORICAL_MAP, validate_variable_type
+from data_quality_tool.common_entities import InvalidDataModelError
+from data_quality_tool.converter.excel_to_json import EXCEL_TYPE_2_SQL_TYPE_ISCATEGORICAL_MAP, validate_variable_type
 
 
 class TestValidateVariableType(unittest.TestCase):
