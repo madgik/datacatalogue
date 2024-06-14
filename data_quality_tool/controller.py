@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 import pandas as pd
 from io import BytesIO
 
@@ -7,12 +8,11 @@ from converter.json_to_excel import convert_json_to_excel
 from validator import json_validator, excel_validator
 
 app = Flask(__name__)
-
+CORS(app)
 
 @app.route("/")
 def home():
     return "Welcome to the Excel-JSON Converter API!"
-
 
 @app.route("/excel-to-json", methods=["POST"])
 def excel_to_json():
@@ -29,7 +29,6 @@ def excel_to_json():
         # Read the Excel file into a Pandas DataFrame
         json_data = convert_excel_to_json(df)
         return jsonify(json_data)
-
 
 @app.route("/json-to-excel", methods=["POST"])
 def json_to_excel():
@@ -51,7 +50,6 @@ def json_to_excel():
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
-
 @app.route("/validate-json", methods=["POST"])
 def validate_json():
     json_data = request.json
@@ -62,7 +60,6 @@ def validate_json():
         return jsonify({"message": "Data model is valid."})
     except json_validator.InvalidDataModelError as e:
         return jsonify({"error": str(e)}), 400
-
 
 @app.route("/validate-excel", methods=["POST"])
 def validate_excel():
@@ -80,3 +77,6 @@ def validate_excel():
             return jsonify({"message": "Data model is valid."})
         except json_validator.InvalidDataModelError as e:
             return jsonify({"error": str(e)}), 400
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000)

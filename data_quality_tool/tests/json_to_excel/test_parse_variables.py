@@ -1,6 +1,6 @@
 import unittest
 
-from data_quality_tool.converter.json_to_excel import parse_variables
+from converter.json_to_excel import parse_variables
 
 
 class TestParseVariablesFunction(unittest.TestCase):

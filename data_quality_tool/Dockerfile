@@ -20,7 +20,7 @@ RUN poetry install --no-dev
 EXPOSE 8000
 
 # Environment variables for Gunicorn to run your Flask app
-ENV MODULE_NAME=converter.controller
+ENV MODULE_NAME=data_quality_tool.controller
 ENV VARIABLE_NAME=app
 ENV PORT=8000
 

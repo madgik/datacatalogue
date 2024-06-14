@@ -1,6 +1,6 @@
 import unittest
 
-from data_quality_tool.validator.json_validator import validate_common_data_element, InvalidDataModelError
+from validator.json_validator import validate_common_data_element, InvalidDataModelError
 
 
 class TestValidateCommonDataElement(unittest.TestCase):

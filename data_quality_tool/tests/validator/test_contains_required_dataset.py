@@ -1,6 +1,6 @@
 import unittest
 
-from data_quality_tool.validator.json_validator import contains_required_dataset
+from validator.json_validator import contains_required_dataset
 
 
 class TestContainsRequiredDataset(unittest.TestCase):

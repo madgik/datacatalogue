@@ -1,7 +1,7 @@
 import unittest
 
-from data_quality_tool.common_entities import InvalidDataModelError
-from data_quality_tool.converter.json_to_excel import extract_values
+from common_entities import InvalidDataModelError
+from converter.json_to_excel import extract_values
 
 
 class TestExtractValuesFunction(unittest.TestCase):

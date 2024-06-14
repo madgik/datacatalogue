@@ -1,7 +1,7 @@
 import unittest
 
-from data_quality_tool.common_entities import InvalidDataModelError
-from data_quality_tool.converter.excel_to_json import process_values_based_on_type
+from common_entities import InvalidDataModelError
+from converter.excel_to_json import process_values_based_on_type
 
 
 class TestProcessValuesBasedOnType(unittest.TestCase):

@@ -2,7 +2,7 @@ import json
 import re
 import pandas as pd
 
-from data_quality_tool.common_entities import InvalidDataModelError, REQUIRED_COLUMNS, EXCEL_COLUMNS, \
+from common_entities import InvalidDataModelError, REQUIRED_COLUMNS, EXCEL_COLUMNS, \
     EXCEL_TYPE_2_SQL_TYPE_ISCATEGORICAL_MAP
 
 # Regex for validation

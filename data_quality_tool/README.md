@@ -1,74 +1,62 @@
-# Data Quality Tool Service
+# Data Quality Tool and Frontend Setup
 
-Welcome to the Data Quality Tool Service! This tool allows you to easily convert between Excel and JSON formats via a simple web service. Follow the steps below to build and run the Docker container, and to use the conversion features.
+This project consists of a backend service (`data_quality_tool`) and a frontend service (`frontend`). The backend provides an API for Excel and JSON conversion and validation, while the frontend provides a user interface to interact with these features.
 
-## Building the Docker Image
+## Prerequisites
 
-To build a new Docker image, navigate to the `datacatalogue/data_quality_tool` directory and execute the following command:
+- Docker
+- Docker Compose
 
-```sh
-docker build -t <USERNAME>/data_quality_tool:<IMAGETAG> .
-```
+## Installation Instructions
 
-### Example:
-```sh
-docker build -t madgik/data_quality_tool:latest .
-```
+### Step 1: Install Docker and Docker Compose
 
-## Running the Docker Container
+#### Windows and macOS
+- Download and install Docker Desktop from [Docker's official website](https://www.docker.com/products/docker-desktop).
 
-Once the image is built, you can start the container with the following command:
+#### Linux
+- Follow the instructions on the [Docker website](https://docs.docker.com/engine/install/) to install Docker.
+- Install Docker Compose by following the instructions [here](https://docs.docker.com/compose/install/).
 
-```sh
-docker run -d -p 8000:8000 --name <CONTAINER_NAME> <USERNAME>/data_quality_tool:<IMAGETAG>
-```
+### Step 2: Clone the Repository
 
-### Example:
-```sh
-docker run -d -p 8000:8000 --name data_quality_tool madgik/data_quality_tool:latest
-```
-
-This command will run the container in detached mode and map port 8000 of the container to port 8000 on your host machine.
-
-## Using the Conversion Features
-
-### Convert Excel to JSON
-
-To convert an Excel file to JSON, use the following `curl` command:
+Clone this repository to your local machine:
 
 ```sh
-curl -X POST -F "file=@<ABSOLUTE_PATH_OF_EXCEL_FILE>" http://127.0.0.1:8000/excel-to-json -o <OUTPUT_JSON_FILE>
+git clone https://github.com/madgik/datacatalogue.git
+cd data-quality-tool
 ```
 
-### Example:
+### Step 3: Build and Run the Services
+
+1. Build the services:
+
+    ```sh
+    docker-compose build
+    ```
+
+2. Start the services:
+
+    ```sh
+    docker-compose up -d
+    ```
+
+### Step 4: Access the Application
+
+- The backend service will be available at [http://localhost:8000](http://localhost:8000).
+- The frontend service will be available at [http://localhost:8080](http://localhost:8080).
+
+You can now interact with the frontend to use the backend's functionality.
+
+### Stopping the Services
+
+To stop the services, run:
+
 ```sh
-curl -X POST -F "file=@/opt/data/data.xlsx" http://127.0.0.1:8000/excel-to-json -o data.json
+docker-compose down
 ```
 
-Replace `<ABSOLUTE_PATH_OF_EXCEL_FILE>` with the absolute path to your Excel file and `<OUTPUT_JSON_FILE>` with the desired name for the output JSON file.
+## Additional Information
 
-### Convert JSON to Excel
-
-To convert a JSON file to Excel, use the following `curl` command:
-
-```sh
-curl -X POST -H "Content-Type: application/json" -d @<ABSOLUTE_PATH_OF_JSON_FILE> http://127.0.0.1:8000/json-to-excel -o <OUTPUT_EXCEL_FILE>
-```
-
-### Example:
-```sh
-curl -X POST -H "Content-Type: application/json" -d @/opt/data/data.json http://127.0.0.1:8000/json-to-excel -o data.xlsx
-```
-
-Replace `<ABSOLUTE_PATH_OF_JSON_FILE>` with the absolute path to your JSON file and `<OUTPUT_EXCEL_FILE>` with the desired name for the output Excel file.
-
-## Summary
-
-1. **Build the Docker Image**:
-   - `docker build -t <USERNAME>/data_quality_tool:<IMAGETAG> .`
-2. **Run the Docker Container**:
-   - `docker run -d -p 8000:8000 --name <CONTAINER_NAME> <USERNAME>/data_quality_tool:<IMAGETAG>`
-3. **Convert Excel to JSON**:
-   - `curl -X POST -F "file=@<ABSOLUTE_PATH_OF_EXCEL_FILE>" http://127.0.0.1:8000/excel-to-json -o <OUTPUT_JSON_FILE>`
-4. **Convert JSON to Excel**:
-   - `curl -X POST -H "Content-Type: application/json" -d @<ABSOLUTE_PATH_OF_JSON_FILE> http://127.0.0.1:8000/json-to-excel -o <OUTPUT_EXCEL_FILE>`
+- To rebuild the images after making changes to the code, run `docker-compose build` again.
+- To view logs for debugging, use `docker-compose logs -f`.

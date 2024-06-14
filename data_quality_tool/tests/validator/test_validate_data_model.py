@@ -1,6 +1,6 @@
 import unittest
 
-from data_quality_tool.validator.json_validator import InvalidDataModelError, validate_json
+from validator.json_validator import InvalidDataModelError, validate_json
 
 
 class TestValidateDataModel(unittest.TestCase):

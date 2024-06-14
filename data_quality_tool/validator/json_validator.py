@@ -1,4 +1,4 @@
-from data_quality_tool.common_entities import InvalidDataModelError
+from common_entities import InvalidDataModelError
 
 TYPE_2_SQL = {
     "nominal": ("text", True),
