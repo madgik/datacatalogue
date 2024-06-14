@@ -1,3 +1,5 @@
+import json
+
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import pandas as pd
@@ -14,6 +16,7 @@ CORS(app)
 def home():
     return "Welcome to the Excel-JSON Converter API!"
 
+
 @app.route("/excel-to-json", methods=["POST"])
 def excel_to_json():
     if "file" not in request.files:
@@ -28,7 +31,16 @@ def excel_to_json():
         excel_validator.validate_excel(df)
         # Read the Excel file into a Pandas DataFrame
         json_data = convert_excel_to_json(df)
-        return jsonify(json_data)
+
+        # Pretty-print the JSON data
+        pretty_json_data = json.dumps(json_data, indent=4)
+
+        response = app.response_class(
+            response=pretty_json_data,
+            status=200,
+            mimetype='application/json'
+        )
+        return response
 
 @app.route("/json-to-excel", methods=["POST"])
 def json_to_excel():
