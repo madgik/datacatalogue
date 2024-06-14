@@ -5,9 +5,7 @@ FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy frontend build files to nginx default public folder
-COPY frontend/ /usr/share/nginx/html/
+COPY . /usr/share/nginx/html/
 
 # Expose port 80
 EXPOSE 80
-
-# Nginx is automatically started by the base image
