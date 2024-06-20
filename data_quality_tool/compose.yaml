@@ -1,3 +1,5 @@
+version: '3'
+
 services:
   data_quality_tool:
     build:
@@ -5,6 +7,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
 
   frontend:
     build:
@@ -12,4 +17,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
-
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1

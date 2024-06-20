@@ -1,10 +1,10 @@
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
-# The working directory should be set to where your Dockerfile and pyproject.toml are located
+# Set the working directory
 WORKDIR /app
 
-# Since the Dockerfile and pyproject.toml are in the same directory, copy the current directory
+# Copy the current directory contents into the container at /app
 COPY . .
 
 # Install Poetry
