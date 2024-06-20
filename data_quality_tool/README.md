@@ -44,7 +44,7 @@ cd datacatalogue/data-quality-tool
 ### Step 4: Access the Application
 
 - The backend service will be available at [http://localhost:8000](http://localhost:8000).
-- The frontend service will be available at [http://localhost:8080](http://localhost:8080).
+- The frontend service will be available at [http://localhost:80](http://localhost:80).
 
 You can now interact with the frontend to use the backend's functionality.
 

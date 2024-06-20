@@ -7,5 +7,8 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy frontend build files to nginx default public folder
 COPY . /usr/share/nginx/html/
 
-# Expose port 80
-EXPOSE 80
+# Copy custom Nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose port 80 and 443
+EXPOSE 80 443

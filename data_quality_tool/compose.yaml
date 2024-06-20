@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   data_quality_tool:
     build:
@@ -11,5 +13,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "8080:80"
-
+      - "80:80"
+    environment:
+      - SERVER_IP=${SERVER_IP}
+      - SSL_CERTIFICATE=/etc/letsencrypt/live/${SERVER_IP}/fullchain.pem
+      - SSL_CERTIFICATE_KEY=/etc/letsencrypt/live/${SERVER_IP}/privkey.pem
+    volumes:
+      - ${PATH2CERT}/fullchain.pem:/etc/letsencrypt/live/${SERVER_IP}/fullchain.pem:ro
+      - ${PATH2CERT}/privkey.pem:/etc/letsencrypt/live/${SERVER_IP}/privkey.pem:ro
