@@ -1,12 +1,42 @@
 services:
-  datacatalogue_db:
+  data_quality_tool:
+    image: data_quality_tool:latest
+    ports:
+      - '8000:8000'
+
+  catalogue_db:
     image: postgres:15
     volumes:
-      - ./.stored_data/datacataloguedb:/var/lib/postgresql/data
-    hostname: datacatalogue_db
+      - ./.stored_data/cataloguedb:/var/lib/postgresql/data
+    hostname: catalogue_db
     environment:
       POSTGRES_PASSWORD: test
     command: -p 5432
     ports:
       - '5432:5432'
     restart: unless-stopped
+
+  datacatalogue:
+    depends_on:
+      - catalogue_db
+      - data_quality_tool
+    image: datacatalogue:latest
+    ports:
+      - '8090:8090'
+    environment:
+      ### API ###
+      LOG_LEVEL: INFO
+      LOG_LEVEL_FRAMEWORK: INFO
+      ### Database ###
+      CATALOGUE_DB_URL: jdbc:postgresql://catalogue_db:5432/postgres
+      CATALOGUE_DB_USER: postgres
+      CATALOGUE_DB_PASSWORD: test
+      ### Data quality tool ###
+      DATA_QUALITY_TOOL_URL: http://data_quality_tool:8000
+      ### Keycloak ###
+      AUTHENTICATION: 0
+      #      AUTHENTICATION: 1     # Should be enabled for keycloak
+      KEYCLOAK_AUTH_URL: http://172.17.0.1/auth/
+      KEYCLOAK_REALM: MIP
+      KEYCLOAK_CLIENT_ID: MIP
+      KEYCLOAK_CLIENT_SECRET: dae83a6b-c769-4186-8383-f0984c6edf05

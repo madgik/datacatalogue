@@ -1,14 +1,19 @@
 package ebrainsv2.mip.datacatalogue.datamodel;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import ebrainsv2.mip.datacatalogue.FileConversionService;
 import ebrainsv2.mip.datacatalogue.utils.Exceptions.BadRequestException;
 import ebrainsv2.mip.datacatalogue.utils.Exceptions.DataModelNotFoundException;
 import ebrainsv2.mip.datacatalogue.utils.UserActionLogger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,20 +26,40 @@ import static ebrainsv2.mip.datacatalogue.datamodel.DataModelConverter.convertTo
 public class DataModelService {
     @Value("${authentication.domain_expert}")
     private String domain_expert;
+
+    @Value("${authentication.enabled}")
+    private boolean authentication_enabled;
     
     private final DataModelRepository dataModelRepository;
+    private final FileConversionService fileConversionService;
 
-    public DataModelService(DataModelRepository dataModelRepository) {
+
+    public DataModelService(DataModelRepository dataModelRepository, FileConversionService fileConversionService) {
         this.dataModelRepository = dataModelRepository;
+        this.fileConversionService = fileConversionService;
     }
 
+    public DataModelDTO importDataModel(MultipartFile file, UserActionLogger logger) throws Exception {
+        File convFile = fileConversionService.convertMultipartFileToFile(file);
+        String jsonResponse = fileConversionService.convertExcelToJson(convFile);
+        System.out.println(jsonResponse);
+        ObjectMapper objectMapper = new ObjectMapper();
+        DataModelDTO dataModelDTO = objectMapper.readValue(jsonResponse, DataModelDTO.class);
+        return createDataModel(dataModelDTO, logger);
+    }
+
+    public ByteArrayResource exportDataModel(Authentication authentication, String uuid, UserActionLogger logger) throws Exception {
+        DataModelDTO dataModel = getDataModel(authentication, uuid, logger);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(dataModel);
+        return fileConversionService.convertJsonToExcel(json);
+    }
     public List<DataModelDTO> listDataModels(Authentication authentication, Boolean released, UserActionLogger logger) {
         logger.info("Listing data models. Released filter: " + released);
         List<DataModelDAO> dataModelDAOS;
 
         boolean isDomainExpert = checkIsDomainExpert(authentication);
-
-        if (!isDomainExpert) {
+        if (authentication_enabled && !isDomainExpert) {
             logger.info("Fetching only released data models for non-domain experts or unauthenticated users.");
             dataModelDAOS = dataModelRepository.findByReleased(true);
         } else {
@@ -57,7 +82,7 @@ public class DataModelService {
 
         boolean isDomainExpert = checkIsDomainExpert(authentication);
 
-        if (isDomainExpert || dataModelDAO.getReleased()) {
+        if (!authentication_enabled || isDomainExpert || dataModelDAO.getReleased()) {
             logger.info(String.format("Data model %s accessed by %s", uuid, isDomainExpert ? "domain expert" : "non-domain expert"));
             return convertToDataModelDTO(dataModelDAO);
         } else {
@@ -153,5 +178,4 @@ public class DataModelService {
                     return new DataModelNotFoundException(errorMessage);
                 });
     }
-
 }
