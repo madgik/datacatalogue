@@ -24,7 +24,7 @@ Clone this repository to your local machine:
 
 ```sh
 git clone https://github.com/madgik/datacatalogue.git
-cd data-quality-tool
+cd datacatalogue/data-quality-tool
 ```
 
 ### Step 3: Build and Run the Services
