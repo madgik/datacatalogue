@@ -21,7 +21,7 @@ def validate_enumerations(values):
         )
     codes = [code for _enum in enumerations for code, label in _enum.items()]
     if len(codes) != len(set(codes)):
-        raise InvalidDataModelError("Duplicate codes found in enumeration values.")
+        raise InvalidDataModelError(f"Duplicate codes found in enumeration values {codes=}.")
 
 
 def validate_min_max(values):
@@ -37,8 +37,8 @@ def validate_min_max(values):
         raise InvalidDataModelError(
             f"Values must match format '<float or integer>-<float or integer>' but got '{values}'."
         )
-    if min_value >= max_value:
-        raise InvalidDataModelError("Min value must be smaller than max value.")
+    if float(min_value) >= float(max_value):
+        raise InvalidDataModelError(f"Min value must be smaller than max value {min_value=} and {max_value=}.")
 
 
 def validate_concept_path(concept_path):
@@ -66,13 +66,16 @@ def validate_variable_type(row):
 
 def validate_variable(row):
     """Validate required columns, variable type, and conceptPath for a single row."""
-    for required_col in REQUIRED_COLUMNS:
-        if pd.isnull(row[required_col]) or row[required_col] is None:
-            raise InvalidDataModelError(
-                f"Missing value for required column '{required_col}'."
-            )
-    validate_variable_type(row)
-    validate_concept_path(row["conceptPath"])
+    try:
+        for required_col in REQUIRED_COLUMNS:
+            if pd.isnull(row[required_col]) or row[required_col] is None:
+                raise InvalidDataModelError(
+                    f"Missing value for required column '{required_col}'."
+                )
+        validate_variable_type(row)
+        validate_concept_path(row["conceptPath"])
+    except InvalidDataModelError as e:
+        raise InvalidDataModelError(f"On :{row['code']} got: {e}")
 
 
 def validate_excel(df):
