@@ -39,3 +39,7 @@ a {
     margin-top: 10px;
     color: #007bff;
 }
+
+#error-message {
+    margin-top: 20px;
+}
